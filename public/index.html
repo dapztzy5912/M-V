@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Image to HD</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; text-align: center; }
+    input[type="file"] { margin: 20px 0; }
+    img { max-width: 100%; margin-top: 20px; border-radius: 8px; }
+    button { padding: 10px 20px; font-size: 16px; }
+  </style>
+</head>
+<body>
+  <h1>Ubah Foto Jadi HD</h1>
+  <form id="uploadForm">
+    <input type="file" id="image" accept="image/png, image/jpeg" required />
+    <br/>
+    <button type="submit">Upscale Sekarang</button>
+  </form>
+  <div id="result"></div>
+
+  <script>
+    const form = document.getElementById('uploadForm')
+    const resultDiv = document.getElementById('result')
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault()
+      const file = document.getElementById('image').files[0]
+      if (!file) return alert('Pilih gambar terlebih dahulu!')
+
+      const formData = new FormData()
+      formData.append('image', file)
+
+      resultDiv.innerHTML = '⏳ Sedang memproses...'
+
+      try {
+        const res = await fetch('/api/upscale', {
+          method: 'POST',
+          body: formData
+        })
+        const json = await res.json()
+
+        if (!json.result_url) throw new Error(json.message || 'Gagal mendapatkan hasil.')
+
+        resultDiv.innerHTML = `
+          <p>✅ Berhasil! Gambar HD:</p>
+          <img src="${json.result_url}" alt="Upscaled Image"/>
+          <br/><a href="${json.result_url}" download>⬇️ Download</a>
+        `
+      } catch (err) {
+        resultDiv.innerHTML = `❌ Upscaling gagal: ${err.message}`
+      }
+    })
+  </script>
+</body>
+</html>
